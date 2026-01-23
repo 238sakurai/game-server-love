@@ -1,7 +1,15 @@
 /* サーバー崩壊ラプソディ - レトロスタイル */
 
-/* ピクセルフォント風のフォントフェイス */
+/* ピクセルフォント風のフォントフェイス（オプション） */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* フォールバック用のピクセルフォント定義 */
+@font-face {
+    font-family: 'PixelFallback';
+    src: local('Courier New'), local('Monaco'), local('Menlo');
+    font-weight: normal;
+    font-style: normal;
+}
 
 * {
     margin: 0;
@@ -22,12 +30,13 @@
 }
 
 body {
-    font-family: 'Press Start 2P', monospace;
+    font-family: 'Press Start 2P', 'PixelFallback', 'Courier New', monospace;
     background-color: var(--color-bg);
     color: var(--color-primary);
     overflow: hidden;
     user-select: none;
     -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
 }
 
@@ -99,7 +108,7 @@ body {
 
 /* ピクセルボタン */
 .pixel-btn {
-    font-family: 'Press Start 2P', monospace;
+    font-family: 'Press Start 2P', 'PixelFallback', 'Courier New', monospace;
     font-size: clamp(10px, 3vw, 14px);
     padding: 15px 30px;
     background: var(--color-muted);
@@ -110,6 +119,7 @@ body {
     text-transform: uppercase;
     box-shadow: 
         4px 4px 0 var(--color-primary);
+    -webkit-tap-highlight-color: transparent;
 }
 
 .pixel-btn:hover, .pixel-btn:active {
@@ -194,6 +204,12 @@ body {
 #server-canvas {
     image-rendering: pixelated;
     image-rendering: crisp-edges;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#server-area {
     cursor: pointer;
 }
 

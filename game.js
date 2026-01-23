@@ -535,31 +535,70 @@ class ServerCrashGame {
     }
     
     setupEvents() {
+        // タッチ判定フラグ（タッチとクリックの重複防止）
+        let touchHandled = false;
+        
+        // ボタン用のイベント設定ヘルパー
+        const addButtonEvents = (btn, callback) => {
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                touchHandled = true;
+                callback();
+            }, { passive: false });
+            
+            btn.addEventListener('click', (e) => {
+                if (touchHandled) {
+                    touchHandled = false;
+                    return;
+                }
+                callback();
+            });
+        };
+        
         // タイトル画面のスタートボタン
-        this.elements.startBtn.addEventListener('click', () => this.startGame());
-        this.elements.startBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            this.startGame();
-        });
+        addButtonEvents(this.elements.startBtn, () => this.startGame());
         
         // リスタートボタン
-        this.elements.restartBtn.addEventListener('click', () => this.restart());
-        this.elements.restartBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            this.restart();
-        });
-        
-        this.elements.bsodRestartBtn.addEventListener('click', () => this.restart());
-        this.elements.bsodRestartBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            this.restart();
-        });
+        addButtonEvents(this.elements.restartBtn, () => this.restart());
+        addButtonEvents(this.elements.bsodRestartBtn, () => this.restart());
         
         // サーバーへのタップ/クリック
-        this.elements.canvas.addEventListener('click', (e) => this.onTap(e));
         this.elements.canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            this.onTap(e.touches[0]);
+            touchHandled = true;
+            if (e.touches && e.touches[0]) {
+                this.onTap(e.touches[0]);
+            }
+        }, { passive: false });
+        
+        this.elements.canvas.addEventListener('click', (e) => {
+            if (touchHandled) {
+                touchHandled = false;
+                return;
+            }
+            this.onTap(e);
+        });
+        
+        // サーバーエリア全体もタップ可能に
+        const serverArea = document.getElementById('server-area');
+        serverArea.addEventListener('touchstart', (e) => {
+            if (e.target === serverArea) {
+                e.preventDefault();
+                touchHandled = true;
+                if (e.touches && e.touches[0]) {
+                    this.onTap(e.touches[0]);
+                }
+            }
+        }, { passive: false });
+        
+        serverArea.addEventListener('click', (e) => {
+            if (e.target === serverArea) {
+                if (touchHandled) {
+                    touchHandled = false;
+                    return;
+                }
+                this.onTap(e);
+            }
         });
     }
     
@@ -1117,5 +1156,29 @@ class ServerCrashGame {
 
 // ===== ゲーム開始 =====
 document.addEventListener('DOMContentLoaded', () => {
-    window.game = new ServerCrashGame();
+    console.log('[サーバー崩壊ラプソディ] 初期化開始...');
+    
+    try {
+        window.game = new ServerCrashGame();
+        console.log('[サーバー崩壊ラプソディ] 初期化完了！');
+        console.log('[サーバー崩壊ラプソディ] TAP TO START を押してゲーム開始');
+    } catch (error) {
+        console.error('[サーバー崩壊ラプソディ] 初期化エラー:', error);
+        alert('ゲームの初期化に失敗しました: ' + error.message);
+    }
 });
+
+// フォールバック: DOMContentLoadedが既に発火している場合
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(() => {
+        if (!window.game) {
+            console.log('[サーバー崩壊ラプソディ] フォールバック初期化...');
+            try {
+                window.game = new ServerCrashGame();
+                console.log('[サーバー崩壊ラプソディ] フォールバック初期化完了！');
+            } catch (error) {
+                console.error('[サーバー崩壊ラプソディ] フォールバック初期化エラー:', error);
+            }
+        }
+    }, 100);
+}
