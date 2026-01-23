@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>サーバー崩壊ラプソディ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- タイトル画面 -->
+        <div id="title-screen" class="screen active">
+            <h1 class="glitch-text">サーバー崩壊<br>ラプソディ</h1>
+            <p class="subtitle">~ Server Crash Rhapsody ~</p>
+            <button id="start-btn" class="pixel-btn">TAP TO START</button>
+            <p class="version">v0.0.1-unstable</p>
+        </div>
+
+        <!-- ゲーム画面 -->
+        <div id="game-screen" class="screen">
+            <!-- ステータスバー -->
+            <div id="status-bar">
+                <div class="status-item">
+                    <span class="label">CPU:</span>
+                    <span id="cpu-value" class="value">0%</span>
+                    <div class="mini-bar"><div id="cpu-bar" class="mini-bar-fill"></div></div>
+                </div>
+                <div class="status-item">
+                    <span class="label">MEM:</span>
+                    <span id="mem-value" class="value">0MB</span>
+                    <div class="mini-bar"><div id="mem-bar" class="mini-bar-fill"></div></div>
+                </div>
+                <div class="status-item">
+                    <span class="label">NET:</span>
+                    <span id="net-value" class="value">0ms</span>
+                    <div class="mini-bar"><div id="net-bar" class="mini-bar-fill"></div></div>
+                </div>
+                <div class="status-item">
+                    <span class="label">DISK:</span>
+                    <span id="disk-value" class="value">OK</span>
+                    <div class="mini-bar"><div id="disk-bar" class="mini-bar-fill"></div></div>
+                </div>
+            </div>
+
+            <!-- サーバー表示エリア -->
+            <div id="server-area">
+                <canvas id="server-canvas" width="200" height="280"></canvas>
+                <div id="tap-effect"></div>
+            </div>
+
+            <!-- ログ表示 -->
+            <div id="log-area">
+                <div id="log-content"></div>
+            </div>
+
+            <!-- タップカウント -->
+            <div id="tap-count">
+                <span>LOAD: </span><span id="load-count">0</span>
+            </div>
+        </div>
+
+        <!-- 崩壊画面 -->
+        <div id="crash-screen" class="screen">
+            <div id="crash-effect"></div>
+            <div id="crash-content">
+                <h2 id="crash-title">SYSTEM FAILURE</h2>
+                <div id="crash-log"></div>
+                <div id="score-display">
+                    <div class="score-item">
+                        <span class="score-label">耐久時間</span>
+                        <span id="time-score" class="score-value">0.0s</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">崩壊指標</span>
+                        <span id="crash-indicators" class="score-value">0</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">芸術点</span>
+                        <span id="art-score" class="score-value">???</span>
+                    </div>
+                </div>
+                <button id="restart-btn" class="pixel-btn">REBOOT SYSTEM</button>
+            </div>
+        </div>
+
+        <!-- BSOD画面（特殊崩壊） -->
+        <div id="bsod-screen" class="screen">
+            <div class="bsod-content">
+                <p class="bsod-sad">:(</p>
+                <p class="bsod-text">Your server ran into a problem and needs to restart.</p>
+                <p class="bsod-error" id="bsod-error"></p>
+                <p class="bsod-percent" id="bsod-percent">0% complete</p>
+                <button id="bsod-restart-btn" class="pixel-btn bsod-btn">FORCE REBOOT</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
