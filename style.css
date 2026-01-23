@@ -1,0 +1,382 @@
+/* ========================================
+   サーバー崩壊ラプソディ - レトロ.style
+   8色パレット制限 / ピクセル感重視
+======================================== */
+
+/* レトロ8色パレット */
+:root {
+    --color-black: #0f0f0f;
+    --color-dark: #1a1a2e;
+    --color-gray: #4a4a6a;
+    --color-light: #8a8aaa;
+    --color-white: #e0e0e0;
+    --color-red: #ff4444;
+    --color-green: #44ff44;
+    --color-cyan: #44ffff;
+    --color-yellow: #ffff44;
+}
+
+/* ピクセルフォント風 */
+@font-face {
+    font-family: 'PixelFont';
+    src: local('Courier New'), local('monospace');
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+body {
+    background-color: var(--color-black);
+    color: var(--color-white);
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    overflow: hidden;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#game-container {
+    width: 100vw;
+    height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-dark);
+    border-left: 4px solid var(--color-gray);
+    border-right: 4px solid var(--color-gray);
+}
+
+/* タイトルバー */
+#title-bar {
+    background: var(--color-gray);
+    color: var(--color-cyan);
+    text-align: center;
+    padding: 8px;
+    font-size: 14px;
+    letter-spacing: 2px;
+    border-bottom: 4px solid var(--color-light);
+    text-shadow: 2px 2px 0 var(--color-black);
+}
+
+.blink {
+    animation: blink 1s step-start infinite;
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
+}
+
+/* ステータスパネル */
+#status-panel {
+    background: var(--color-black);
+    padding: 8px;
+    border-bottom: 2px solid var(--color-gray);
+}
+
+.meter-row {
+    display: flex;
+    align-items: center;
+    margin: 4px 0;
+    gap: 8px;
+}
+
+.label {
+    width: 40px;
+    color: var(--color-light);
+    font-size: 10px;
+}
+
+.meter {
+    flex: 1;
+    height: 12px;
+    background: var(--color-dark);
+    border: 2px solid var(--color-gray);
+}
+
+.meter-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--color-green);
+    transition: width 0.1s step-end, background-color 0.1s step-end;
+}
+
+.meter-fill.warning {
+    background: var(--color-yellow);
+}
+
+.meter-fill.danger {
+    background: var(--color-red);
+    animation: pulse 0.2s step-start infinite;
+}
+
+@keyframes pulse {
+    50% { opacity: 0.5; }
+}
+
+.value {
+    width: 60px;
+    text-align: right;
+    font-size: 10px;
+    color: var(--color-green);
+}
+
+.value.warning {
+    color: var(--color-yellow);
+}
+
+.value.danger {
+    color: var(--color-red);
+}
+
+/* サーバーエリア */
+#server-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: 
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 4px,
+            rgba(0,0,0,0.1) 4px,
+            rgba(0,0,0,0.1) 8px
+        );
+    cursor: pointer;
+    min-height: 200px;
+}
+
+#game-canvas {
+    background: var(--color-black);
+    border: 4px solid var(--color-gray);
+    box-shadow: 
+        0 0 0 2px var(--color-dark),
+        inset 0 0 20px rgba(0,255,255,0.1);
+}
+
+#tap-hint {
+    position: absolute;
+    bottom: 20px;
+    color: var(--color-light);
+    font-size: 10px;
+    animation: bounce 0.5s step-start infinite alternate;
+}
+
+@keyframes bounce {
+    to { transform: translateY(-4px); }
+}
+
+/* ログパネル */
+#log-panel {
+    height: 80px;
+    background: var(--color-black);
+    border-top: 2px solid var(--color-gray);
+    overflow: hidden;
+    padding: 4px 8px;
+}
+
+#log-content {
+    height: 100%;
+    overflow-y: auto;
+    font-size: 9px;
+    color: var(--color-green);
+    line-height: 1.4;
+}
+
+#log-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+#log-content::-webkit-scrollbar-thumb {
+    background: var(--color-gray);
+}
+
+.log-line {
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.log-line.error {
+    color: var(--color-red);
+}
+
+.log-line.warn {
+    color: var(--color-yellow);
+}
+
+.log-line.info {
+    color: var(--color-cyan);
+}
+
+/* スコアパネル */
+#score-panel {
+    display: flex;
+    justify-content: space-around;
+    padding: 8px;
+    background: var(--color-gray);
+    border-top: 4px solid var(--color-light);
+    font-size: 10px;
+}
+
+#score-panel span {
+    color: var(--color-white);
+}
+
+#time-score { color: var(--color-cyan); }
+#crash-count { color: var(--color-red); }
+#art-score { color: var(--color-yellow); }
+
+/* クラッシュオーバーレイ */
+#crash-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+#crash-overlay.hidden {
+    display: none;
+}
+
+#crash-content {
+    text-align: center;
+    max-width: 300px;
+    padding: 20px;
+    background: var(--color-dark);
+    border: 4px solid var(--color-red);
+}
+
+#crash-title {
+    font-size: 20px;
+    color: var(--color-red);
+    margin-bottom: 16px;
+    animation: glitch 0.3s step-start infinite;
+}
+
+@keyframes glitch {
+    0% { transform: translate(0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(2px, -2px); }
+    60% { transform: translate(-2px, -2px); }
+    80% { transform: translate(2px, 2px); }
+    100% { transform: translate(0); }
+}
+
+#crash-message {
+    font-size: 10px;
+    color: var(--color-light);
+    margin-bottom: 16px;
+    white-space: pre-wrap;
+    text-align: left;
+    background: var(--color-black);
+    padding: 8px;
+    border: 2px solid var(--color-gray);
+}
+
+#crash-stats {
+    font-size: 12px;
+    color: var(--color-cyan);
+    margin-bottom: 16px;
+}
+
+#restart-btn {
+    background: var(--color-dark);
+    color: var(--color-green);
+    border: 2px solid var(--color-green);
+    padding: 8px 24px;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.1s step-start;
+}
+
+#restart-btn:hover,
+#restart-btn:active {
+    background: var(--color-green);
+    color: var(--color-black);
+}
+
+/* BSOD風演出 */
+.bsod {
+    background: #0000aa !important;
+}
+
+.bsod #crash-content {
+    background: #0000aa;
+    border: none;
+    color: white;
+}
+
+.bsod #crash-title {
+    color: white;
+    animation: none;
+}
+
+.bsod #crash-message {
+    background: transparent;
+    border: none;
+    color: white;
+}
+
+/* フリーズ演出 */
+.frozen * {
+    animation: none !important;
+}
+
+/* スキャンライン効果 */
+#game-container::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.1) 2px,
+        rgba(0,0,0,0.1) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+}
+
+/* モバイル調整 */
+@media (max-width: 480px) {
+    #game-container {
+        border: none;
+    }
+    
+    #game-canvas {
+        width: 280px;
+        height: 210px;
+    }
+}
+
+/* 小さい画面 */
+@media (max-height: 600px) {
+    #log-panel {
+        height: 60px;
+    }
+    
+    #game-canvas {
+        width: 240px;
+        height: 180px;
+    }
+}

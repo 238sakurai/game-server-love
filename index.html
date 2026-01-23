@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>サーバー崩壊ラプソディ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <header id="title-bar">
+            <span class="blink">●</span> SERVER COLLAPSE RHAPSODY <span class="blink">●</span>
+        </header>
+        
+        <div id="status-panel">
+            <div class="meter-row">
+                <span class="label">CPU:</span>
+                <div class="meter"><div class="meter-fill" id="cpu-meter"></div></div>
+                <span class="value" id="cpu-value">0%</span>
+            </div>
+            <div class="meter-row">
+                <span class="label">MEM:</span>
+                <div class="meter"><div class="meter-fill" id="mem-meter"></div></div>
+                <span class="value" id="mem-value">0MB</span>
+            </div>
+            <div class="meter-row">
+                <span class="label">NET:</span>
+                <div class="meter"><div class="meter-fill" id="net-meter"></div></div>
+                <span class="value" id="net-value">0ms</span>
+            </div>
+            <div class="meter-row">
+                <span class="label">DISK:</span>
+                <div class="meter"><div class="meter-fill" id="disk-meter"></div></div>
+                <span class="value" id="disk-value">OK</span>
+            </div>
+        </div>
+
+        <div id="server-area">
+            <canvas id="game-canvas" width="320" height="240"></canvas>
+            <div id="tap-hint">TAP TO STRESS</div>
+        </div>
+
+        <div id="log-panel">
+            <div id="log-content"></div>
+        </div>
+
+        <div id="score-panel">
+            <span>TIME: <span id="time-score">0.0s</span></span>
+            <span>CRASH: <span id="crash-count">0</span></span>
+            <span>ART: <span id="art-score">0</span></span>
+        </div>
+
+        <div id="crash-overlay" class="hidden">
+            <div id="crash-content">
+                <div id="crash-title"></div>
+                <div id="crash-message"></div>
+                <div id="crash-stats"></div>
+                <button id="restart-btn">[ RELOAD ]</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
