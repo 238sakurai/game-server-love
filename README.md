@@ -1,5 +1,7 @@
 # サーバー崩壊ラプソディ
 
+https://238sakurai.github.io/game-server-love/
+
 **~ Server Crash Rhapsody ~**
 
 ITエンジニアのための、偏差値低め・思想弱め・でもちょっと愛があるクソゲー
