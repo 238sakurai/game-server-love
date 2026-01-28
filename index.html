@@ -629,8 +629,14 @@ class Sound {
         o.stop(this.ctx.currentTime + dur);
     }
     
-    tap() { this.beep(R.int(200, 500), 0.05, R.pick(['square', 'sawtooth'])); }
-    warn() { this.beep(400, 0.15); setTimeout(() => this.beep(500, 0.15), 150); }
+    tap() { this.beep(330, 0.05, 'square'); }
+    warn() {
+        if (this.warnCooldown) return;
+        this.warnCooldown = true;
+        this.beep(400, 0.15);
+        setTimeout(() => this.beep(500, 0.15), 150);
+        setTimeout(() => { this.warnCooldown = false; }, 1000);
+    }
     
     explode() {
         if (!this.ok || !this.ctx) return;
@@ -832,8 +838,12 @@ class Game {
     setupEvents() {
         const tap = (el, fn) => {
             let touched = false;
-            el.addEventListener('touchstart', e => { e.preventDefault(); touched = true; fn(e.touches[0]); }, {passive: false});
-            el.addEventListener('click', e => { if (!touched) fn(e); touched = false; });
+            el.addEventListener('touchstart', e => {
+                e.preventDefault(); touched = true; fn(e.touches[0]);
+            }, {passive: false});
+            el.addEventListener('click', e => {
+                if (!touched) fn(e); touched = false;
+            });
         };
         
         tap(this.el.startBtn, () => this.start());
@@ -913,8 +923,10 @@ class Game {
     
     ripple(e) {
         const rect = this.el.serverArea.getBoundingClientRect();
-        const x = (e.clientX || e.pageX) - rect.left;
-        const y = (e.clientY || e.pageY) - rect.top;
+        let x = (e.clientX ?? e.pageX ?? rect.left + rect.width / 2) - rect.left;
+        let y = (e.clientY ?? e.pageY ?? rect.top + rect.height / 2) - rect.top;
+        x = Math.max(0, Math.min(x, rect.width));
+        y = Math.max(0, Math.min(y, rect.height));
         
         const r = document.createElement('div');
         r.className = 'tap-ripple';
