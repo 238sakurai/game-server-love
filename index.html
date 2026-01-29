@@ -724,12 +724,17 @@ class Sound {
     constructor() {
         this.ctx = null;
         this.ok = true;
+        this.mode = 'retro';
     }
     
     init() {
         try {
             this.ctx = new (window.AudioContext || window.webkitAudioContext)();
         } catch(e) { this.ok = false; }
+    }
+    
+    setMode(mode) {
+        this.mode = mode;
     }
     
     resume() {
@@ -742,6 +747,7 @@ class Sound {
         }
     }
     
+    // レトロ用ビープ音
     beep(freq = 440, dur = 0.1, type = 'square') {
         if (!this.ok || !this.ctx) return;
         const o = this.ctx.createOscillator();
@@ -756,43 +762,188 @@ class Sound {
         o.stop(this.ctx.currentTime + dur);
     }
     
-    tap() { this.beep(330, 0.05, 'square'); }
+    // モダン用サイン波ベースの滑らかな音
+    modernTone(freq, dur, attack = 0.01, decay = 0.1) {
+        if (!this.ok || !this.ctx) return;
+        const t = this.ctx.currentTime;
+        const o = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        const f = this.ctx.createBiquadFilter();
+        
+        o.connect(f);
+        f.connect(g);
+        g.connect(this.ctx.destination);
+        
+        o.type = 'sine';
+        o.frequency.value = freq;
+        f.type = 'lowpass';
+        f.frequency.value = freq * 2;
+        f.Q.value = 1;
+        
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(0.25, t + attack);
+        g.gain.exponentialRampToValueAtTime(0.01, t + dur);
+        
+        o.start(t);
+        o.stop(t + dur);
+    }
+    
+    tap() {
+        if (this.mode === 'modern') {
+            // モダン: ソフトなUIクリック音（複数周波数の短いパルス）
+            if (!this.ok || !this.ctx) return;
+            const t = this.ctx.currentTime;
+            [800, 1200, 600].forEach((freq, i) => {
+                const o = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                const f = this.ctx.createBiquadFilter();
+                o.connect(f);
+                f.connect(g);
+                g.connect(this.ctx.destination);
+                o.type = 'sine';
+                o.frequency.value = freq;
+                f.type = 'lowpass';
+                f.frequency.value = 2000;
+                g.gain.setValueAtTime(0.15 - i * 0.04, t);
+                g.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+                o.start(t);
+                o.stop(t + 0.08);
+            });
+        } else {
+            // レトロ: 8bit風ビープ
+            this.beep(330, 0.05, 'square');
+        }
+    }
+    
     warn() {
         if (this.warnCooldown) return;
         this.warnCooldown = true;
-        this.beep(400, 0.15);
-        setTimeout(() => this.beep(500, 0.15), 150);
+        
+        if (this.mode === 'modern') {
+            // モダン: リアルなアラーム音（サイレン風）
+            if (!this.ok || !this.ctx) return;
+            const t = this.ctx.currentTime;
+            const o = this.ctx.createOscillator();
+            const g = this.ctx.createGain();
+            o.connect(g);
+            g.connect(this.ctx.destination);
+            o.type = 'sine';
+            o.frequency.setValueAtTime(600, t);
+            o.frequency.linearRampToValueAtTime(900, t + 0.15);
+            o.frequency.linearRampToValueAtTime(600, t + 0.3);
+            g.gain.setValueAtTime(0.2, t);
+            g.gain.setValueAtTime(0.2, t + 0.25);
+            g.gain.exponentialRampToValueAtTime(0.01, t + 0.35);
+            o.start(t);
+            o.stop(t + 0.35);
+        } else {
+            // レトロ: 2音ビープ
+            this.beep(400, 0.15);
+            setTimeout(() => this.beep(500, 0.15), 150);
+        }
         setTimeout(() => { this.warnCooldown = false; }, 1000);
     }
     
     explode() {
         if (!this.ok || !this.ctx) return;
-        const o = this.ctx.createOscillator();
-        const g = this.ctx.createGain();
-        o.connect(g);
-        g.connect(this.ctx.destination);
-        o.type = 'sawtooth';
-        o.frequency.setValueAtTime(150, this.ctx.currentTime);
-        o.frequency.exponentialRampToValueAtTime(20, this.ctx.currentTime + 0.4);
-        g.gain.setValueAtTime(0.4, this.ctx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.4);
-        o.start();
-        o.stop(this.ctx.currentTime + 0.4);
+        const t = this.ctx.currentTime;
+        
+        if (this.mode === 'modern') {
+            // モダン: 重厚な爆発音（サブベース + ノイズ + 残響）
+            // サブベース
+            const sub = this.ctx.createOscillator();
+            const subG = this.ctx.createGain();
+            sub.connect(subG);
+            subG.connect(this.ctx.destination);
+            sub.type = 'sine';
+            sub.frequency.setValueAtTime(80, t);
+            sub.frequency.exponentialRampToValueAtTime(20, t + 0.6);
+            subG.gain.setValueAtTime(0.5, t);
+            subG.gain.exponentialRampToValueAtTime(0.01, t + 0.6);
+            sub.start(t);
+            sub.stop(t + 0.6);
+            
+            // ミッドレンジクランチ
+            const mid = this.ctx.createOscillator();
+            const midG = this.ctx.createGain();
+            const dist = this.ctx.createWaveShaperFunction ? null : this.ctx.createWaveShaper();
+            mid.connect(midG);
+            midG.connect(this.ctx.destination);
+            mid.type = 'sawtooth';
+            mid.frequency.setValueAtTime(200, t);
+            mid.frequency.exponentialRampToValueAtTime(40, t + 0.4);
+            midG.gain.setValueAtTime(0.3, t);
+            midG.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
+            mid.start(t);
+            mid.stop(t + 0.4);
+            
+            // 爆発ノイズ（フィルター付き）
+            const dur = 0.5;
+            const buf = this.ctx.createBuffer(1, this.ctx.sampleRate * dur, this.ctx.sampleRate);
+            const d = buf.getChannelData(0);
+            for (let i = 0; i < d.length; i++) {
+                const env = 1 - i / d.length;
+                d[i] = (Math.random() * 2 - 1) * env * env;
+            }
+            const noise = this.ctx.createBufferSource();
+            const noiseG = this.ctx.createGain();
+            const noiseF = this.ctx.createBiquadFilter();
+            noise.buffer = buf;
+            noise.connect(noiseF);
+            noiseF.connect(noiseG);
+            noiseG.connect(this.ctx.destination);
+            noiseF.type = 'lowpass';
+            noiseF.frequency.setValueAtTime(4000, t);
+            noiseF.frequency.exponentialRampToValueAtTime(200, t + dur);
+            noiseG.gain.setValueAtTime(0.35, t);
+            noiseG.gain.exponentialRampToValueAtTime(0.01, t + dur);
+            noise.start(t);
+        } else {
+            // レトロ: シンプルな8bit爆発
+            const o = this.ctx.createOscillator();
+            const g = this.ctx.createGain();
+            o.connect(g);
+            g.connect(this.ctx.destination);
+            o.type = 'sawtooth';
+            o.frequency.setValueAtTime(150, t);
+            o.frequency.exponentialRampToValueAtTime(20, t + 0.4);
+            g.gain.setValueAtTime(0.4, t);
+            g.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
+            o.start(t);
+            o.stop(t + 0.4);
+        }
     }
     
     noise(dur = 0.3) {
         if (!this.ok || !this.ctx) return;
+        const t = this.ctx.currentTime;
         const buf = this.ctx.createBuffer(1, this.ctx.sampleRate * dur, this.ctx.sampleRate);
         const d = buf.getChannelData(0);
         for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
         const s = this.ctx.createBufferSource();
         const g = this.ctx.createGain();
         s.buffer = buf;
-        s.connect(g);
-        g.connect(this.ctx.destination);
-        g.gain.setValueAtTime(0.2, this.ctx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + dur);
-        s.start();
+        
+        if (this.mode === 'modern') {
+            // モダン: フィルター付きノイズ（よりリアルな電子ノイズ）
+            const f = this.ctx.createBiquadFilter();
+            s.connect(f);
+            f.connect(g);
+            g.connect(this.ctx.destination);
+            f.type = 'bandpass';
+            f.frequency.setValueAtTime(2000, t);
+            f.frequency.exponentialRampToValueAtTime(500, t + dur);
+            f.Q.value = 2;
+            g.gain.setValueAtTime(0.15, t);
+            g.gain.exponentialRampToValueAtTime(0.01, t + dur);
+        } else {
+            // レトロ: 生のホワイトノイズ
+            s.connect(g);
+            g.connect(this.ctx.destination);
+            g.gain.setValueAtTime(0.2, t);
+            g.gain.exponentialRampToValueAtTime(0.01, t + dur);
+        }
+        s.start(t);
     }
 }
 
@@ -1189,6 +1340,7 @@ class Game {
         
         // モードを設定
         this.server.setMode(this.selectedMode);
+        this.sound.setMode(this.selectedMode);
         document.getElementById('game-container').classList.toggle('modern-mode', this.selectedMode === 'modern');
         
         this.state = {
