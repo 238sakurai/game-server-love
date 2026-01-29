@@ -732,9 +732,13 @@ class Sound {
         } catch(e) { this.ok = false; }
     }
     
-    async resume() {
+    resume() {
         if (this.ctx?.state === 'suspended') {
-            await this.ctx.resume();
+            try {
+                this.ctx.resume().catch(() => {});
+            } catch (e) {
+                // ignore resume errors to avoid blocking the game
+            }
         }
     }
     
@@ -1179,9 +1183,9 @@ class Game {
         this.screens[name].classList.add('active');
     }
     
-    async start() {
+    start() {
         this.sound.init();
-        await this.sound.resume();
+        this.sound.resume();
         
         // モードを設定
         this.server.setMode(this.selectedMode);
@@ -1217,7 +1221,7 @@ class Game {
         this.loop();
     }
     
-    async onTap(e) {
+    onTap(e) {
         if (!this.state?.running) return;
         
         // サーバーキャンバスの領域内かチェック
@@ -1229,7 +1233,7 @@ class Game {
             return;
         }
         
-        await this.sound.resume();
+        this.sound.resume();
         this.sound.tap();
         
         const inc = {
